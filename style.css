@@ -151,3 +151,14 @@
 .lat-legend .c{background:var(--cyan)}.lat-legend .r{background:#ff6b81}.lat-legend .g{background:var(--green)}.lat-legend .t{background:repeating-linear-gradient(90deg,#ff6b81 0 3px,transparent 3px 5px)}
 .lat-note{margin:12px 0 0;font-size:12px;line-height:1.7;color:var(--dim);max-width:820px}
 @media(max-width:560px){.lat-chart{height:180px}.lat-card{padding:16px}}
+
+/* Status page bars (Reliability section) */
+.up-card{margin-top:14px;border:1px solid var(--line-strong);border-radius:13px;background:var(--panel);padding:22px}
+.up-bars{display:flex;gap:3px;height:36px;margin-top:4px}
+.up-bars i{flex:1;min-width:0;border-radius:2px;background:var(--green);opacity:.85}
+.up-bars i.deg{background:var(--amber)}
+.up-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px;font:11px var(--mono);color:var(--dim)}
+.up-key{display:flex;gap:16px;color:var(--muted)}
+.up-key i{display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--green);margin-right:6px;vertical-align:0}
+.up-key i.deg{background:var(--amber)}
+@media(max-width:560px){.up-bars{gap:2px;height:30px}.up-card{padding:16px}.up-foot{justify-content:center}.up-foot>span:first-child,.up-foot>span:last-child{flex:1}.up-foot>span:last-child{text-align:right}.up-key{order:3;width:100%;justify-content:center}}

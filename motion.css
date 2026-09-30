@@ -145,4 +145,8 @@
 .m .gl-row:not(.m-lit) .gl-body,.m .gl-row:not(.m-lit) .gl-hash{opacity:.55}
 /* latency chart */
 .m .lat-static{display:none}
+/* status bars */
+.m .up-bars i{transform:scaleY(0);transform-origin:bottom;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .2s}
+.m .up-bars.m-on i{transform:scaleY(1)}
+.m .up-bars.m-on i:hover{opacity:1;transform:scaleY(1.18);transition-delay:0s!important}
 .m-paused *,.m-paused *:before,.m-paused *:after{animation-play-state:paused!important}

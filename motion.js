@@ -215,6 +215,10 @@
     (function f(t) { requestAnimationFrame(f); if (vis.get(card) === false) { lt = t; return; } acc += t - lt; lt = t; if (acc > 180) { acc = 0; step(); } draw(); })(lt);
   }
 
+  /* ---------- status bars grow in ---------- */
+  const upBars = $('#up-bars');
+  if (upBars) { [...upBars.children].forEach((b, i) => b.style.transitionDelay = i * 9 + 'ms'); once(upBars, () => upBars.classList.add('m-on'), 0.6); }
+
   /* ---------- migration phase tabs: auto-advance until the visitor takes over ---------- */
   const tabs = $('.pipeline-steps');
   if (tabs) {
@@ -493,7 +497,7 @@
 
   /* ---------- spotlight cards + magnetic buttons ---------- */
   if (fine) {
-    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article, .iac-cloud, .k8s-panel, .wf-stage, .lat-card').forEach(el => {
+    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article, .iac-cloud, .k8s-panel, .wf-stage, .lat-card, .up-card').forEach(el => {
       el.classList.add('m-host');
       const s = document.createElement('span'); s.className = 'm-spot'; s.setAttribute('aria-hidden', 'true'); el.prepend(s);
       el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--mx', e.clientX - r.left + 'px'); el.style.setProperty('--my', e.clientY - r.top + 'px'); });
