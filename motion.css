@@ -58,15 +58,6 @@
 .m .signal-graph:after{content:'';position:absolute;top:0;bottom:0;width:40px;left:-40px;background:linear-gradient(90deg,transparent,#67d4ed30,transparent);animation:m-scan 3.6s linear infinite}
 @keyframes m-scan{to{left:100%}}
 
-/* career git line */
-.m .career-entry:not(:last-child) .career-track:after{display:none}
-.m .career-entry:not(:last-child):before,.m .career-entry:not(:last-child):after{content:'';position:absolute;left:7px;top:51px;bottom:-36px;width:1px;background:var(--line-strong)}
-.m .career-entry:not(:last-child):after{width:2px;left:6.5px;background:linear-gradient(var(--green),var(--cyan));transform-origin:top;transform:scaleY(var(--p,0));box-shadow:0 0 8px #4ce2a080}
-.m .career-track{transition:background .4s,box-shadow .4s,transform .4s;z-index:1}
-.m .career-entry.m-lit .career-track{background:var(--green);box-shadow:0 0 0 5px #4ce2a022,0 0 16px var(--green);transform:scale(1.1)}
-.m .career-entry .commit-type{transition:color .4s}
-.m .career-entry.m-lit .commit-type{color:var(--green)}
-
 /* toolkit marquee */
 .m-marquee{margin-top:34px;overflow:hidden;display:grid;gap:10px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
 .m-track{display:flex;gap:10px;width:max-content;animation:m-mq 42s linear infinite}
@@ -137,4 +128,15 @@
 @keyframes m-pod{from{transform:scale(0)}}
 @keyframes m-shake{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
 .m .k8s-events li{animation:m-fade .3s ease both}
+/* career git log */
+.m .git-log svg .gl-track{fill:none;stroke:#1f3a35;stroke-width:2}
+.m .git-log svg .gl-draw{fill:none;stroke-width:2.5;stroke-linecap:round}
+.m .git-log svg .gl-draw.m{stroke:var(--green);filter:drop-shadow(0 0 4px #4ce2a080)}
+.m .git-log svg .gl-draw.b{stroke:#a99bff;filter:drop-shadow(0 0 4px #a99bff80)}
+.m .gl-row:before{transform:scale(.55);opacity:.45;transition:transform .45s cubic-bezier(.3,1.7,.5,1),opacity .3s,box-shadow .3s}
+.m .gl-row.m-lit:before{transform:scale(1);opacity:1}
+.m .gl-main.m-lit:before{box-shadow:0 0 0 4px #4ce2a026,0 0 14px var(--green)}
+.m .gl-branch.m-lit:before{box-shadow:0 0 0 4px #a99bff26,0 0 14px #a99bff}
+.m .gl-row .gl-body,.m .gl-row .gl-hash{transition:opacity .4s}
+.m .gl-row:not(.m-lit) .gl-body,.m .gl-row:not(.m-lit) .gl-hash{opacity:.55}
 .m-paused *,.m-paused *:before,.m-paused *:after{animation-play-state:paused!important}

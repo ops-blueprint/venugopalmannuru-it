@@ -166,189 +166,44 @@
     watch(viz); once(viz, schedule, 0.4);
   }
 
-  /* ---------- career git line draws on scroll ---------- */
-  const entries = $$('.career-entry');
-  if (entries.length) {
+  /* ---------- career git graph: branches drawn from row positions, scrubbed by scroll ---------- */
+  const gitLog = $('#git-log');
+  if (gitLog) {
+    const rows = [...gitLog.querySelectorAll('.gl-row')], NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('aria-hidden', 'true'); gitLog.prepend(svg);
+    let paths = [], ys = [];
+    const build = () => {
+      const narrow = innerWidth <= 780, X = narrow ? [14, 46] : [18, 50];
+      ys = rows.map(r => r.offsetTop + (r.classList.contains('gl-head') ? 30 : 30));
+      const lanes = rows.map(r => r.classList.contains('gl-branch') ? 1 : 0);
+      const d = [{ c: 'm', d: `M${X[0]} ${ys[0]} L${X[0]} ${ys[ys.length - 1]}` }];
+      for (let i = 0; i < rows.length; i++) if (lanes[i] === 1 && lanes[i - 1] === 0) {
+        let k = i; while (lanes[k + 1] === 1) k++;
+        const top = ys[i - 1], bot = ys[k + 1] ?? ys[k] + 40;
+        d.push({ c: 'b', d: `M${X[0]} ${top} C${X[0]} ${top + 26} ${X[1]} ${ys[i] - 26} ${X[1]} ${ys[i]} L${X[1]} ${ys[k]} C${X[1]} ${ys[k] + 26} ${X[0]} ${bot - 26} ${X[0]} ${bot}` });
+        i = k;
+      }
+      const h = gitLog.offsetHeight; svg.setAttribute('viewBox', `0 0 72 ${h}`); svg.style.height = h + 'px';
+      svg.innerHTML = d.map(p => `<path class="gl-track" d="${p.d}"/>`).join('') + d.map(p => `<path class="gl-draw ${p.c}" d="${p.d}"/>`).join('');
+      paths = [...svg.querySelectorAll('.gl-draw')].map(p => { const L = p.getTotalLength(); p.style.strokeDasharray = L; return { p, L }; });
+      gitLog.classList.add('gl-drawn'); update();
+    };
     let ticking = false;
     const update = () => {
-      ticking = false; const line = innerHeight * .62;
-      entries.forEach(e => {
-        const r = e.getBoundingClientRect();
-        const p = Math.max(0, Math.min(1, (line - (r.top + 51)) / Math.max(1, r.height - 15)));
-        e.style.setProperty('--p', p.toFixed(3));
-        e.classList.toggle('m-lit', r.top + 43 < line);
+      ticking = false;
+      const line = innerHeight * .68, r = gitLog.getBoundingClientRect();
+      const reach = line - r.top; // px of the list that has passed the line
+      paths.forEach(({ p, L }) => {
+        const bb = p.getBBox(), prog = Math.max(0, Math.min(1, (reach - bb.y) / Math.max(1, bb.height)));
+        p.style.strokeDashoffset = L * (1 - prog);
       });
+      rows.forEach((row, i) => row.classList.toggle('m-lit', ys[i] < reach));
     };
     addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-    addEventListener('resize', update); update();
-  }
-
-  /* ---------- Kubernetes simulation: animates the static snapshot in #k-svg ---------- */
-  const kSvg = $('#k-svg');
-  if (kSvg) {
-    const NS = 'http://www.w3.org/2000/svg', C = 250, sim = $('#k8s-sim'), podLayer = $('#k-pods'), ev = $('#k-ev');
-    const nodesEl = $$('#k-svg .knode');
-    const slots = $$('#k-svg .k-slot').map(r => ({ node: +r.dataset.node, x: +r.getAttribute('x'), y: +r.getAttribute('y'), pod: null, dying: false, name: '' }));
-    const hex = n => Array.from({ length: n }, () => '0123456789abcdef'[Math.random() * 16 | 0]).join('');
-    let desired = 6, cpu = 48, phase = 0, healed = 0;
-    const running = () => slots.filter(s => s.pod && s.pod !== 'pending' && !s.dying);
-    const ui = () => {
-      $('#k-rep').textContent = running().length + '/' + desired; $('#k-cpu').textContent = Math.round(cpu) + '%';
-      const b = $('#k-cpubar'); b.style.width = cpu + '%'; b.style.background = cpu > 75 ? '#ff6b81' : cpu > 55 ? 'var(--amber)' : 'var(--green)';
-      $('#k-heal').textContent = healed;
-    };
-    const log = (cls, tag, msg) => {
-      const li = document.createElement('li'); li.className = cls; li.innerHTML = `<b>${tag}</b><span>${msg}</span>`;
-      ev.prepend(li); while (ev.children.length > 5) ev.lastChild.remove();
-    };
-    const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); podLayer.append(e); return e; };
-    const spawn = reason => {
-      const free = slots.filter(s => !s.pod); if (!free.length) return;
-      const load = n => slots.filter(s => s.node === n && s.pod).length;
-      free.sort((a, b) => load(a.node) - load(b.node)); const s = free[0]; s.pod = 'pending';
-      s.name = 'api-7f9c2-' + hex(5);
-      log(reason === 'heal' ? 'g' : 'c', reason === 'heal' ? 'Healed' : 'Scheduled', `${s.name} → node-${s.node + 1}`);
-      const pk = mk('circle', { cx: C, cy: C, r: 4, fill: '#67d4ed', style: 'filter:drop-shadow(0 0 6px #67d4ed)' });
-      const tx = s.x + 10, ty = s.y + 10, st = performance.now(), D = 550;
-      (function fly(t) {
-        const p = Math.min((t - st) / D, 1), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
-        pk.setAttribute('cx', C + (tx - C) * e); pk.setAttribute('cy', C + (ty - C) * e);
-        if (p < 1) return requestAnimationFrame(fly);
-        pk.remove(); s.pod = mk('rect', { class: 'k-pod', x: s.x, y: s.y, width: 20, height: 20, rx: 5 });
-        const n = nodesEl[s.node]; n.classList.add('hot'); setTimeout(() => n.classList.remove('hot'), 600); ui();
-      })(st);
-    };
-    const kill = (s, crash) => {
-      s.dying = true;
-      if (crash) { s.pod.classList.add('crash'); log('r', 'BackOff', `${s.name} OOMKilled, restarting`); }
-      else { s.pod.classList.add('out'); log('a', 'Killing', `${s.name} (scale-down)`); }
-      setTimeout(() => { s.pod.classList.add('out'); setTimeout(() => { s.pod.remove(); s.pod = null; s.dying = false; ui(); if (crash) { healed++; spawn('heal'); } }, 450); }, crash ? 700 : 0);
-    };
-    watch(sim);
-    once(sim, async () => {
-      podLayer.replaceChildren(); ev.replaceChildren(); healed = 0;
-      for (let i = 0; i < 6; i++) { spawn(); await sleep(180); }
-      while (true) {
-        await whenVisible(sim); await sleep(950);
-        phase += .09; cpu = Math.max(8, Math.min(96, 52 + 38 * Math.sin(phase) + rnd(-6, 6)));
-        const nd = Math.max(4, Math.min(16, Math.round(2 + cpu / 7)));
-        if (nd !== desired) { log('a', 'HPA', `scaled api ${desired} → ${nd} (cpu ${Math.round(cpu)}%)`); desired = nd; }
-        const r = running(), pending = slots.filter(s => s.pod === 'pending').length;
-        if (r.length + pending < desired) spawn();
-        else if (r.length > desired) kill(r[Math.random() * r.length | 0], false);
-        else if (r.length && Math.random() < .2) kill(r[Math.random() * r.length | 0], true);
-        ui();
-      }
-    }, 0.25);
-  }
-
-  /* ---------- Azure IaC replay: reads the static main.tf from the page ---------- */
-  const iacCode = $('#iac-code');
-  if (iacCode) {
-    const grid = iacCode.closest('.iac-grid'), pre = iacCode.parentElement, apply = $('#iac-apply'), count = $('#iac-count');
-    const items = $$('#iac-res li'), byAddr = Object.fromEntries(items.map(li => [li.dataset.addr, li]));
-    const lines = [...iacCode.querySelectorAll('.l')].map(l => l.textContent);
-    let cur = null;
-    const plan = lines.map(l => {
-      const mt = l.match(/^resource "(\w+)" "(\w+)"/); if (mt) cur = mt[1] + '.' + mt[2];
-      let done = null; if (l === '}' && cur) { done = cur; cur = null; }
-      return { l, done };
-    });
-    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-    const hl = s => esc(s).replace(/("[^"]*"?)|\b(provider|resource|true|false)\b|\b([a-z_]+)(?=\s*=)|\b(\d[\d.]*)\b|([{}\[\]=])/g,
-      (m, str, kw, at, num, p) => str ? `<span class="s">${str}</span>` : kw ? `<span class="k">${kw}</span>` : at ? `<span class="a">${at}</span>` : num ? `<span class="n">${num}</span>` : `<span class="p">${p}</span>`);
-    pre.setAttribute('aria-hidden', 'true');
-    const sr = document.createElement('p'); sr.className = 'm-sr'; sr.textContent = 'Illustrative Terraform configuration that provisions an Azure virtual network, AKS cluster, container registry, PostgreSQL server, Key Vault and a metric alert in westeurope.'; pre.after(sr);
-    watch(grid);
-    let made = 0;
-    const setCount = () => count.textContent = `${made} / ${items.length} CREATED`;
-    const provision = async li => {
-      const d = rnd(1300, 2300), st = li.querySelector('.iac-st');
-      li.className = 'm-creating'; st.textContent = '+ creating…';
-      li.style.setProperty('--d', '0s'); li.style.setProperty('--b', '0%'); void li.offsetWidth;
-      li.style.setProperty('--d', d + 'ms'); li.style.setProperty('--b', '100%');
-      await sleep(d);
-      li.className = 'm-made'; st.textContent = '✓ created'; li.style.setProperty('--b', '0%'); li.style.setProperty('--d', '0s');
-      made++; setCount();
-    };
-    once(grid, async () => {
-      while (true) {
-        await whenVisible(grid);
-        made = 0; setCount();
-        items.forEach(li => { li.className = 'm-pend'; li.querySelector('.iac-st').textContent = 'pending'; });
-        iacCode.replaceChildren(); pre.scrollTop = 0;
-        apply.classList.add('m-busy'); apply.textContent = '$ terraform apply';
-        const jobs = [];
-        for (const { l, done } of plan) {
-          await whenVisible(grid);
-          const row = document.createElement('span'); row.className = 'l'; iacCode.append(row, '\n');
-          for (let c = 2; c < l.length + 2; c += 2) { row.innerHTML = hl(l.slice(0, c)); await sleep(14); }
-          pre.scrollTop = pre.scrollHeight;
-          if (done && byAddr[done]) { apply.textContent = `${done}: Creating...`; jobs.push(provision(byAddr[done])); }
-          await sleep(55);
-        }
-        await Promise.all(jobs);
-        apply.classList.remove('m-busy'); apply.textContent = `Apply complete! Resources: ${items.length} added, 0 changed, 0 destroyed.`;
-        await sleep(5500);
-      }
-    }, 0.3);
-  }
-
-  /* ---------- case study page ---------- */
-  if ($('.case-main')) {
-    // staggered reveals (the homepage gets these from app.js)
-    const groups = [['.case-context'], ['.case-rule'], ['.method-grid article', 90], ['.evidence-list a', 110], ['.evidence-note'], ['.case-limits > div', 120], ['.case-next']];
-    groups.forEach(([sel, step = 0]) => $$(sel).forEach((el, i) => {
-      el.classList.add('m-rv'); el.style.transitionDelay = i * step + 'ms';
-      once(el, () => el.classList.add('m-rv-on'), 0.15);
-    }));
-    // kicker decode
-    const chars = '!<>-_\\/[]{}=+*^?#01';
-    $$('.case-main .kicker').forEach(k => {
-      const text = k.textContent; k.setAttribute('aria-label', text);
-      once(k, () => {
-        const st = performance.now(), D = 900;
-        (function f(t) {
-          const p = Math.min((t - st) / D, 1), n = Math.floor(p * text.length);
-          let out = text.slice(0, n);
-          for (let i = n; i < text.length; i++) out += text[i] === ' ' ? ' ' : chars[Math.random() * chars.length | 0];
-          k.textContent = out; if (p < 1) requestAnimationFrame(f); else k.textContent = text;
-        })(st);
-      }, 0.8);
-    });
-    // engineering question highlight
-    const rule = $('.case-rule strong');
-    if (rule) { rule.innerHTML = rule.innerHTML.replace(/(“workflow succeeded”)/, '<mark class="m-mark">$1</mark>'); once(rule, () => rule.classList.add('m-on'), 0.6); }
-    // method pipeline rail
-    const grid = $('.method-grid');
-    if (grid) {
-      const steps = [...grid.children];
-      const rail = document.createElement('div'); rail.className = 'm-rail'; rail.setAttribute('aria-hidden', 'true');
-      rail.innerHTML = '<i class="m-rail-fill"></i><b class="m-rail-dot"></b>' + steps.map((_, i) => `<span style="left:${(i + .5) / steps.length * 100}%"></span>`).join('');
-      grid.before(rail); watch(grid);
-      const nodes = [...rail.querySelectorAll('span')], fill = rail.querySelector('.m-rail-fill'), dot = rail.querySelector('.m-rail-dot');
-      const setPos = i => { const pct = (i + .5) / steps.length * 100; fill.style.width = pct + '%'; dot.style.left = pct + '%'; };
-      once(grid, async () => {
-        while (true) {
-          for (let i = 0; i < steps.length; i++) {
-            await whenVisible(grid);
-            setPos(i);
-            steps.forEach((s, j) => { s.classList.toggle('m-active', j === i); s.classList.toggle('m-done', j < i); });
-            nodes.forEach((n, j) => n.classList.toggle('m-lit', j <= i));
-            await sleep(2300);
-          }
-          steps.forEach(s => { s.classList.remove('m-active'); s.classList.add('m-done'); });
-          await sleep(1800);
-          steps.forEach(s => s.classList.remove('m-done')); nodes.forEach(n => n.classList.remove('m-lit'));
-          fill.style.transition = 'none'; dot.style.transition = 'none'; fill.style.width = '0'; dot.style.left = '0';
-          void fill.offsetWidth; fill.style.transition = ''; dot.style.transition = '';
-          await sleep(400);
-        }
-      }, 0.3);
-    }
-    // live status dot on the CI evidence link
-    const ci = $$('.evidence-list a').find(a => /actions\/runs/.test(a.href));
-    if (ci) { const d = document.createElement('i'); d.className = 'm-live'; d.setAttribute('aria-hidden', 'true'); ci.querySelector('strong')?.prepend(d); }
+    let rt; const rebuild = () => { clearTimeout(rt); rt = setTimeout(build, 120); };
+    new ResizeObserver(rebuild).observe(gitLog);
+    document.fonts && document.fonts.ready.then(rebuild);
+    build();
   }
 
   /* ---------- scroll progress ---------- */
