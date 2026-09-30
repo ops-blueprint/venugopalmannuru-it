@@ -13,6 +13,7 @@ Live at https://ops-blueprint.github.io/venugopalmannuru-it/. To preview locally
 - `index.html`: semantic site content and navigation
 - `style.css`: responsive visual system and reduced-motion support
 - `app.js`: accessible migration-phase tabs, mobile menu, copy action, and one-time entrance effects
+- `motion.js` + `motion.css`: motion layer: hero network mesh, terminal replay, count-up figures, flowing migration and platform traces, auto-advancing phase tabs, scroll-drawn career line, toolkit marquee, cursor spotlight. It only animates existing content and is skipped entirely under `prefers-reduced-motion`.
 - `projects/pipeline-modernization/`: evidence-led project case study
 - `assets/fonts/`: self-hosted Geist and JetBrains Mono variable fonts and their OFL licences
 - `assets/Venu-Gopal-Reddy-CV.pdf`: supplied CV rendered as PDF
@@ -20,7 +21,7 @@ Live at https://ops-blueprint.github.io/venugopalmannuru-it/. To preview locally
 ## Performance and accessibility choices
 
 - Complete HTML arrives without client-side rendering.
-- No third-party JavaScript, remote font requests, or large image payloads. Two self-hosted variable fonts load with `font-display: swap`.
+- No third-party JavaScript (the motion layer is plain JS/CSS), remote font requests, or large image payloads. Two self-hosted variable fonts load with `font-display: swap`.
 - Interaction is event-driven; entrance effects run only once and honour reduced-motion settings.
 - Navigation and tabs work with keyboard input. Project links are plain anchors.
 - Mobile layout avoids horizontal overflow at a 390-pixel viewport.
