@@ -143,4 +143,6 @@
 .m .gl-branch.m-lit:before{box-shadow:0 0 0 4px #a99bff26,0 0 14px #a99bff}
 .m .gl-row .gl-body,.m .gl-row .gl-hash{transition:opacity .4s}
 .m .gl-row:not(.m-lit) .gl-body,.m .gl-row:not(.m-lit) .gl-hash{opacity:.55}
+/* latency chart */
+.m .lat-static{display:none}
 .m-paused *,.m-paused *:before,.m-paused *:after{animation-play-state:paused!important}

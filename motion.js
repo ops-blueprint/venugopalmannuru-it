@@ -174,6 +174,47 @@
   const graph = $('.signal-graph');
   if (graph) { [...graph.children].forEach((s, i) => s.style.transitionDelay = i * 70 + 'ms'); once(graph, () => graph.classList.add('m-on'), 0.5); }
 
+  /* ---------- live p95 latency chart: deploy, alert, automatic rollback, recovery ---------- */
+  const latC = $('#lat-canvas');
+  if (latC) {
+    const card = $('#lat-card'), now = $('#lat-now'), x = latC.getContext('2d'); latC.hidden = false; watch(card);
+    const N = 140, css = getComputedStyle(document.documentElement);
+    const G = css.getPropertyValue('--green').trim() || '#4ce2a0', CY = css.getPropertyValue('--cyan').trim() || '#67d4ed', R = '#ff6b81';
+    const mono = (css.getPropertyValue('--mono') || 'monospace').trim();
+    let data = Array.from({ length: N }, () => 110 + rnd(-12, 12)), marks = [], tick = 0, spike = 0, W = 0, H = 0;
+    const size = () => { const d = Math.min(devicePixelRatio || 1, 2); W = latC.clientWidth; H = latC.clientHeight; latC.width = W * d; latC.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); };
+    size(); addEventListener('resize', size);
+    const step = () => {
+      tick++; const k = tick % 170;
+      if (k === 30) marks.push({ i: N - 1, t: 'deploy', c: CY });
+      if (k === 85) { spike = 1; marks.push({ i: N - 1, t: 'alert: p95 > 250 ms', c: R }); }
+      if (k === 97) { spike = -1; marks.push({ i: N - 1, t: 'automatic rollback', c: G }); }
+      let v = 110 + rnd(-12, 12) + Math.sin(tick / 9) * 7; const last = data[N - 1];
+      if (spike === 1) v = Math.min(460, last + rnd(26, 44));
+      if (spike === -1) { v = last - (last - 110) * .25; if (last < 128) spike = 0; }
+      data.push(v); data.shift(); marks.forEach(m => m.i--); marks = marks.filter(m => m.i > -8);
+      now.textContent = Math.round(v) + ' ms'; now.style.color = v > 250 ? R : '';
+    };
+    const draw = () => {
+      if (!W) return;
+      const pad = 24, sx = i => i / (N - 1) * W, sy = v => H - pad - (v / 500) * (H - pad - 20);
+      x.clearRect(0, 0, W, H); x.font = `10px ${mono}`;
+      [0, 125, 250, 375, 500].forEach(v => { x.strokeStyle = '#16212c'; x.beginPath(); x.moveTo(0, sy(v)); x.lineTo(W, sy(v)); x.stroke(); x.fillStyle = '#4b5d6a'; x.fillText(v + ' ms', 4, sy(v) - 4); });
+      x.setLineDash([5, 5]); x.strokeStyle = 'rgba(255,107,129,.6)'; x.beginPath(); x.moveTo(0, sy(250)); x.lineTo(W, sy(250)); x.stroke(); x.setLineDash([]);
+      const gr = x.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, 'rgba(76,226,160,.26)'); gr.addColorStop(1, 'rgba(76,226,160,0)');
+      x.beginPath(); data.forEach((v, i) => i ? x.lineTo(sx(i), sy(v)) : x.moveTo(0, sy(v))); x.lineTo(W, H - pad); x.lineTo(0, H - pad); x.fillStyle = gr; x.fill();
+      const lg = x.createLinearGradient(0, sy(470), 0, sy(0)); lg.addColorStop(0, R); lg.addColorStop(.45, '#ffbd66'); lg.addColorStop(.55, G); lg.addColorStop(1, G);
+      x.beginPath(); data.forEach((v, i) => i ? x.lineTo(sx(i), sy(v)) : x.moveTo(0, sy(v))); x.strokeStyle = lg; x.lineWidth = 2; x.stroke(); x.lineWidth = 1;
+      marks.forEach((m, j) => {
+        const mx = sx(m.i); x.strokeStyle = m.c; x.globalAlpha = .7; x.beginPath(); x.moveTo(mx, 26); x.lineTo(mx, H - pad); x.stroke(); x.globalAlpha = 1;
+        x.fillStyle = m.c; const tw = x.measureText(m.t).width; x.fillText(m.t, Math.min(mx + 5, W - tw - 4), 36 + (j % 2) * 12);
+      });
+      const lx = sx(N - 1) - 3, ly = sy(data[N - 1]); x.fillStyle = '#fff'; x.shadowColor = G; x.shadowBlur = 12; x.beginPath(); x.arc(lx, ly, 3.5, 0, 7); x.fill(); x.shadowBlur = 0;
+    };
+    let acc = 0, lt = performance.now();
+    (function f(t) { requestAnimationFrame(f); if (vis.get(card) === false) { lt = t; return; } acc += t - lt; lt = t; if (acc > 180) { acc = 0; step(); } draw(); })(lt);
+  }
+
   /* ---------- migration phase tabs: auto-advance until the visitor takes over ---------- */
   const tabs = $('.pipeline-steps');
   if (tabs) {
@@ -452,7 +493,7 @@
 
   /* ---------- spotlight cards + magnetic buttons ---------- */
   if (fine) {
-    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article, .iac-cloud, .k8s-panel, .wf-stage').forEach(el => {
+    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article, .iac-cloud, .k8s-panel, .wf-stage, .lat-card').forEach(el => {
       el.classList.add('m-host');
       const s = document.createElement('span'); s.className = 'm-spot'; s.setAttribute('aria-hidden', 'true'); el.prepend(s);
       el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--mx', e.clientX - r.left + 'px'); el.style.setProperty('--my', e.clientY - r.top + 'px'); });
