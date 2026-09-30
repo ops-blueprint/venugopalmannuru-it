@@ -114,4 +114,15 @@
 .m .case-next a{transition:letter-spacing .3s}
 .m .case-next a:hover{letter-spacing:.04em}
 
+/* IaC replay */
+.m .iac-res li{transition:opacity .4s,border-color .4s,background .4s}
+.m .iac-res li:after{content:'';position:absolute;left:0;bottom:0;height:2px;width:var(--b,0%);background:var(--amber);transition:width var(--d,1.5s) ease-in-out}
+.m .iac-res li.m-pend{opacity:.4;border-style:dashed;border-color:var(--line-strong);background:transparent}
+.m .iac-res li.m-pend .iac-st{color:var(--dim)}
+.m .iac-res li.m-creating{border-color:#ffbd6680;background:#1b1912}
+.m .iac-res li.m-creating .iac-st{color:var(--amber)}
+.m .iac-res li.m-made{animation:m-made .6s ease}
+@keyframes m-made{0%{box-shadow:0 0 0 0 #4ce2a000}40%{box-shadow:0 0 0 1px #4ce2a080,0 0 26px -4px #4ce2a0}100%{box-shadow:0 0 0 0 #4ce2a000}}
+.m .iac-apply.m-busy{color:var(--muted)}
+
 .m-paused *,.m-paused *:before,.m-paused *:after{animation-play-state:paused!important}

@@ -183,6 +183,58 @@
     addEventListener('resize', update); update();
   }
 
+  /* ---------- Azure IaC replay: reads the static main.tf from the page ---------- */
+  const iacCode = $('#iac-code');
+  if (iacCode) {
+    const grid = iacCode.closest('.iac-grid'), pre = iacCode.parentElement, apply = $('#iac-apply'), count = $('#iac-count');
+    const items = $$('#iac-res li'), byAddr = Object.fromEntries(items.map(li => [li.dataset.addr, li]));
+    const lines = [...iacCode.querySelectorAll('.l')].map(l => l.textContent);
+    let cur = null;
+    const plan = lines.map(l => {
+      const mt = l.match(/^resource "(\w+)" "(\w+)"/); if (mt) cur = mt[1] + '.' + mt[2];
+      let done = null; if (l === '}' && cur) { done = cur; cur = null; }
+      return { l, done };
+    });
+    const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const hl = s => esc(s).replace(/("[^"]*"?)|\b(provider|resource|true|false)\b|\b([a-z_]+)(?=\s*=)|\b(\d[\d.]*)\b|([{}\[\]=])/g,
+      (m, str, kw, at, num, p) => str ? `<span class="s">${str}</span>` : kw ? `<span class="k">${kw}</span>` : at ? `<span class="a">${at}</span>` : num ? `<span class="n">${num}</span>` : `<span class="p">${p}</span>`);
+    pre.setAttribute('aria-hidden', 'true');
+    const sr = document.createElement('p'); sr.className = 'm-sr'; sr.textContent = 'Illustrative Terraform configuration that provisions an Azure virtual network, AKS cluster, container registry, PostgreSQL server, Key Vault and a metric alert in westeurope.'; pre.after(sr);
+    watch(grid);
+    let made = 0;
+    const setCount = () => count.textContent = `${made} / ${items.length} CREATED`;
+    const provision = async li => {
+      const d = rnd(1300, 2300), st = li.querySelector('.iac-st');
+      li.className = 'm-creating'; st.textContent = '+ creating…';
+      li.style.setProperty('--d', '0s'); li.style.setProperty('--b', '0%'); void li.offsetWidth;
+      li.style.setProperty('--d', d + 'ms'); li.style.setProperty('--b', '100%');
+      await sleep(d);
+      li.className = 'm-made'; st.textContent = '✓ created'; li.style.setProperty('--b', '0%'); li.style.setProperty('--d', '0s');
+      made++; setCount();
+    };
+    once(grid, async () => {
+      while (true) {
+        await whenVisible(grid);
+        made = 0; setCount();
+        items.forEach(li => { li.className = 'm-pend'; li.querySelector('.iac-st').textContent = 'pending'; });
+        iacCode.replaceChildren(); pre.scrollTop = 0;
+        apply.classList.add('m-busy'); apply.textContent = '$ terraform apply';
+        const jobs = [];
+        for (const { l, done } of plan) {
+          await whenVisible(grid);
+          const row = document.createElement('span'); row.className = 'l'; iacCode.append(row, '\n');
+          for (let c = 2; c < l.length + 2; c += 2) { row.innerHTML = hl(l.slice(0, c)); await sleep(14); }
+          pre.scrollTop = pre.scrollHeight;
+          if (done && byAddr[done]) { apply.textContent = `${done}: Creating...`; jobs.push(provision(byAddr[done])); }
+          await sleep(55);
+        }
+        await Promise.all(jobs);
+        apply.classList.remove('m-busy'); apply.textContent = `Apply complete! Resources: ${items.length} added, 0 changed, 0 destroyed.`;
+        await sleep(5500);
+      }
+    }, 0.3);
+  }
+
   /* ---------- case study page ---------- */
   if ($('.case-main')) {
     // staggered reveals (the homepage gets these from app.js)
@@ -258,7 +310,7 @@
 
   /* ---------- spotlight cards + magnetic buttons ---------- */
   if (fine) {
-    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article').forEach(el => {
+    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article, .iac-cloud').forEach(el => {
       el.classList.add('m-host');
       const s = document.createElement('span'); s.className = 'm-spot'; s.setAttribute('aria-hidden', 'true'); el.prepend(s);
       el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--mx', e.clientX - r.left + 'px'); el.style.setProperty('--my', e.clientY - r.top + 'px'); });

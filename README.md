@@ -14,6 +14,7 @@ Live at https://ops-blueprint.github.io/venugopalmannuru-it/. To preview locally
 - `style.css`: responsive visual system and reduced-motion support
 - `app.js`: accessible migration-phase tabs, mobile menu, copy action, and one-time entrance effects
 - `motion.js` + `motion.css`: motion layer: hero network mesh, terminal replay, count-up figures, flowing migration and platform traces, auto-advancing phase tabs, scroll-drawn career line, toolkit marquee, cursor spotlight. It only animates existing content and is skipped entirely under `prefers-reduced-motion`.
+- `index.html#iac`: illustrative Azure Terraform example (VNet, AKS, ACR, PostgreSQL, Key Vault, alert). Renders complete without JS; `motion.js` replays it as a typed `terraform apply`.
 - `projects/pipeline-modernization/`: evidence-led project case study
 - `assets/fonts/`: self-hosted Geist and JetBrains Mono variable fonts and their OFL licences
 - `assets/Venu-Gopal-Reddy-CV.pdf`: supplied CV rendered as PDF
