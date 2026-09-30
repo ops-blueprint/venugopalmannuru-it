@@ -6,16 +6,16 @@ The site uses the template's dark grid, green/cyan palette, terminal motif, pipe
 
 ## Preview
 
-Serve `dist/` with a local static server. There are no runtime dependencies or build steps.
+Live at https://ops-blueprint.github.io/venugopalmannuru-it/. To preview locally, serve the repo root with any static server. There are no runtime dependencies or build steps.
 
 ## Structure
 
-- `dist/index.html`: semantic site content and navigation
-- `dist/style.css`: responsive visual system and reduced-motion support
-- `dist/app.js`: accessible migration-phase tabs, mobile menu, copy action, and one-time entrance effects
-- `dist/projects/pipeline-modernization/`: evidence-led project case study
-- `dist/assets/fonts/`: self-hosted Geist and JetBrains Mono variable fonts and their OFL licences
-- `dist/assets/Venu-Gopal-Reddy-CV.pdf`: supplied CV rendered as PDF
+- `index.html`: semantic site content and navigation
+- `style.css`: responsive visual system and reduced-motion support
+- `app.js`: accessible migration-phase tabs, mobile menu, copy action, and one-time entrance effects
+- `projects/pipeline-modernization/`: evidence-led project case study
+- `assets/fonts/`: self-hosted Geist and JetBrains Mono variable fonts and their OFL licences
+- `assets/Venu-Gopal-Reddy-CV.pdf`: supplied CV rendered as PDF
 
 ## Performance and accessibility choices
 
