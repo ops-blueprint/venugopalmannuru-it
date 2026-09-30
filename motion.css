@@ -20,6 +20,10 @@
 .m .terminal-body p.m-in{animation:m-fade .3s ease both}
 @keyframes m-fade{from{opacity:0;transform:translateY(4px)}}
 .m .terminal-body.m-out{opacity:0;transition:opacity .5s}
+.m .terminal-body.m-ops p{margin-bottom:7px}
+.m .terminal-body.m-ops .terminal-cursor{margin-top:14px!important}
+.m .terminal-body .m-t-amber{color:var(--amber)}
+.m .terminal-body .m-t-cyan{color:var(--cyan)}
 
 /* migration flow */
 .m .flow-track{position:relative}

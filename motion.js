@@ -88,39 +88,70 @@
     requestAnimationFrame(frame);
   }
 
-  /* ---------- terminal replay (same lines as the static HTML) ---------- */
+  /* ---------- terminal replay: alternates the static experience snapshot with an ops session ---------- */
   const tb = $('#terminal-body');
   if (tb) {
     const sr = document.createElement('div'); sr.className = 'm-sr'; sr.textContent = tb.textContent.replace(/\s+/g, ' ').trim();
     tb.after(sr); tb.setAttribute('aria-hidden', 'true');
-    const script = [...tb.children].map(p => {
+    const cursorLine = tb.querySelector('.terminal-cursor')?.cloneNode(true);
+    const snapshot = [...tb.children].filter(p => !p.classList.contains('terminal-cursor')).map(p => {
       const path = p.querySelector('.path');
-      if (!path || p.classList.contains('terminal-cursor')) return { type: 'out', node: p.cloneNode(true) };
+      if (!path) return { type: 'out', node: p.cloneNode(true) };
       let prefix = '', text = '', after = false;
       p.childNodes.forEach(n => { if (after) text += n.textContent; else { prefix += n.nodeType === 3 ? n.textContent : n.outerHTML; if (n === path) after = true; } });
-      return { type: 'cmd', cls: p.className, prefix, text: text.replace(/^\s+/, '') };
+      return { type: 'cmd', prefix, text: text.replace(/^\s+/, '') };
     });
+    // Ops session: commands and tools from the CV; output is illustrative (the terminal is labelled so).
+    const cmd = (path, text) => ({ type: 'cmd', prefix: `<span class="prompt">➜</span> <span class="path">${path}</span>`, text });
+    const out = (text, cls) => ({ type: 'text', text, cls });
+    const ops = [
+      cmd('~/infra', 'terraform apply -auto-approve'),
+      out('Plan: 6 to add, 0 to change, 0 to destroy.', 'terminal-muted'),
+      { type: 'bar' },
+      out('✓ Apply complete! Resources: 6 added.', 'terminal-good'),
+      cmd('~/deploy', 'helm upgrade --install api ./charts/api -n prod'),
+      out('Release "api" has been upgraded.', 'terminal-muted m-t-cyan'),
+      cmd('~/deploy', 'kubectl rollout status deploy/api -n prod'),
+      out('Waiting for rollout: 2 of 3 updated replicas…', 'terminal-muted m-t-amber'),
+      out('✓ deployment "api" successfully rolled out', 'terminal-good'),
+      cmd('~/gitops', 'argocd app sync api-prod'),
+      out('✓ Sync status: Synced · Health: Healthy', 'terminal-good'),
+    ];
+    const sessions = [{ label: 'EXPERIENCE SNAPSHOT', steps: snapshot, cls: '' }, { label: 'OPS SESSION', steps: ops, cls: 'm-ops' }];
+    const foot = tb.closest('.terminal')?.querySelectorAll('.terminal-foot span');
     const term = tb.closest('.terminal'); watch(term);
+    const fit = () => { while (tb.children.length > 1 && tb.scrollHeight > tb.clientHeight + 1) tb.firstElementChild.remove(); };
     (async () => {
+      tb.style.height = Math.max(tb.offsetHeight, 290) + 'px';
       await sleep(600);
-      while (true) {
+      for (let n = 0; ; n++) {
+        const ses = sessions[n % sessions.length];
         await whenVisible(term);
-        tb.classList.remove('m-out'); tb.replaceChildren();
-        for (const s of script) {
+        if (foot && foot.length > 1) { foot[0].textContent = ses.label; foot[1].textContent = `${(n % sessions.length) + 1} / ${sessions.length}`; }
+        tb.classList.remove('m-out'); tb.classList.toggle('m-ops', !!ses.cls); tb.replaceChildren();
+        for (const s of ses.steps) {
           await whenVisible(term);
           if (s.type === 'cmd') {
-            const p = document.createElement('p'); p.className = s.cls;
-            p.innerHTML = s.prefix + ' <span class="m-typed"></span><span class="cursor"></span>'; tb.append(p);
+            const p = document.createElement('p');
+            p.innerHTML = s.prefix + ' <span class="m-typed"></span><span class="cursor"></span>'; tb.append(p); fit();
             const t = p.querySelector('.m-typed');
             await sleep(350);
-            for (const ch of s.text) { t.textContent += ch; await sleep(rnd(28, 70)); }
+            for (const ch of s.text) { t.textContent += ch; await sleep(rnd(26, 62)); }
             await sleep(280); p.querySelector('.cursor').remove();
+          } else if (s.type === 'bar') {
+            await sleep(300);
+            const p = document.createElement('p'); p.className = 'terminal-muted m-t-amber m-in'; tb.append(p); fit();
+            for (let k = 0; k <= 20; k++) { p.textContent = '[' + '█'.repeat(k) + '░'.repeat(20 - k) + '] ' + k * 5 + '%'; await sleep(65); }
           } else {
             await sleep(420);
-            const n = s.node.cloneNode(true); n.classList.add('m-in'); tb.append(n);
+            let node;
+            if (s.type === 'text') { node = document.createElement('p'); node.className = s.cls; node.textContent = s.text; }
+            else node = s.node.cloneNode(true);
+            node.classList.add('m-in'); tb.append(node); fit();
           }
         }
-        await sleep(5200);
+        if (cursorLine) { await sleep(300); const c = cursorLine.cloneNode(true); c.classList.add('m-in'); tb.append(c); fit(); }
+        await sleep(ses.cls ? 4200 : 5200);
         tb.classList.add('m-out'); await sleep(550);
       }
     })();

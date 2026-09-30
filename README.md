@@ -13,7 +13,7 @@ Live at https://ops-blueprint.github.io/venugopalmannuru-it/. To preview locally
 - `index.html`: semantic site content and navigation
 - `style.css`: responsive visual system and reduced-motion support
 - `app.js`: accessible migration-phase tabs, mobile menu, copy action, and one-time entrance effects
-- `motion.js` + `motion.css`: motion layer: hero network mesh, terminal replay, count-up figures, flowing migration and platform traces, auto-advancing phase tabs, scroll-drawn career line, toolkit marquee, cursor spotlight. It only animates existing content and is skipped entirely under `prefers-reduced-motion`.
+- `motion.js` + `motion.css`: motion layer: hero network mesh, terminal replay (experience snapshot alternating with an illustrative ops session: terraform, helm, kubectl, argocd), count-up figures, flowing migration and platform traces, auto-advancing phase tabs, scroll-drawn career line, toolkit marquee, cursor spotlight. It only animates existing content and is skipped entirely under `prefers-reduced-motion`.
 - `index.html#wf`: illustrative reusable GitHub Actions workflow run (commit, Maven/Docker build, SonarQube gate, Artifactory, approval, Helm + Argo CD). Shows a passed run without JS; `motion.js` loops it stage by stage.
 - `index.html#git-log`: Experience as a newest-first git log. Roles on main, CV achievements on branches that merge into the next role. Static rail without JS; `motion.js` draws the branch curves on scroll.
 - `index.html#k8s-sim`: illustrative Kubernetes simulation inside the Platform section (HPA scaling, scheduling, crash + self-heal, event feed). Static snapshot without JS; `motion.js` runs the simulation.
