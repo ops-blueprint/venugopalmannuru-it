@@ -125,4 +125,16 @@
 @keyframes m-made{0%{box-shadow:0 0 0 0 #4ce2a000}40%{box-shadow:0 0 0 1px #4ce2a080,0 0 26px -4px #4ce2a0}100%{box-shadow:0 0 0 0 #4ce2a000}}
 .m .iac-apply.m-busy{color:var(--muted)}
 
+/* Kubernetes simulation */
+.m #k-svg .k-ring{transform-origin:250px 250px;animation:spin-k 60s linear infinite}
+.m #k-svg .k-ring.k-rev{animation-duration:90s;animation-direction:reverse}
+@keyframes spin-k{to{transform:rotate(360deg)}}
+.m #k-svg .k-traffic{animation:m-kdash 1s linear infinite}
+@keyframes m-kdash{to{stroke-dashoffset:-12}}
+.m #k-svg .k-pod{transform-box:fill-box;transform-origin:center;animation:m-pod .45s cubic-bezier(.3,1.7,.5,1);transition:opacity .45s,fill .2s}
+.m #k-svg .k-pod.crash{fill:#ff6b81;filter:drop-shadow(0 0 6px #ff6b81e6);animation:m-shake .3s 2}
+.m #k-svg .k-pod.out{opacity:0;fill:var(--dim)}
+@keyframes m-pod{from{transform:scale(0)}}
+@keyframes m-shake{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+.m .k8s-events li{animation:m-fade .3s ease both}
 .m-paused *,.m-paused *:before,.m-paused *:after{animation-play-state:paused!important}

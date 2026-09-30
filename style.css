@@ -45,3 +45,32 @@
 .iac-apply{font:12px var(--mono);color:var(--green);margin:16px 0 0;min-height:18px;overflow-wrap:anywhere}
 @media(max-width:900px){.iac-grid{grid-template-columns:1fr}.iac-pre{height:380px}}
 @media(max-width:460px){.iac-res{grid-template-columns:1fr}.iac-pre{font-size:10.5px;padding:16px 12px}.iac-pre .l:before{width:24px}}
+
+/* Kubernetes simulation (inside Platform section) */
+.k8s-sim{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:14px;margin-top:14px}
+.k8s-panel,.k8s-viz{border:1px solid var(--line-strong);border-radius:13px;background:var(--panel);min-width:0}
+.k8s-panel{padding:22px;display:flex;flex-direction:column;gap:16px}
+.k8s-head{display:flex;justify-content:space-between;gap:10px;font:11px var(--mono);color:var(--muted);letter-spacing:.05em}
+.k8s-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.k8s-stats>div{background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px 13px}
+.k8s-stats small{display:block;font:10px var(--mono);color:var(--dim)}
+.k8s-stats strong{display:block;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+.k-bar{display:block;height:4px;background:var(--line-strong);border-radius:4px;margin-top:8px;overflow:hidden}
+.k-bar b{display:block;height:100%;background:var(--green);transition:width .6s,background .6s}
+.k8s-label{margin:0;font:11px var(--mono);color:var(--muted)}
+.k8s-events{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;min-height:148px;font:11.5px/1.45 var(--mono);color:var(--muted)}
+.k8s-events li{display:flex;gap:8px;min-width:0}
+.k8s-events b{font-weight:500;flex:none}
+.k8s-events span{overflow-wrap:anywhere}
+.k8s-events .g b{color:var(--green)}.k8s-events .r b{color:#ff7a8a}.k8s-events .a b{color:var(--amber)}.k8s-events .c b{color:var(--cyan)}
+.k8s-note{margin:auto 0 0;font-size:11px;line-height:1.6;color:var(--dim)}
+.k8s-viz{display:grid;place-items:center;padding:10px}
+#k-svg{width:100%;max-width:500px;height:auto}
+#k-svg .k-traffic{stroke:var(--cyan);stroke-width:1.5;stroke-dasharray:3 9;opacity:.5}
+#k-svg .k-cp{font:700 12px var(--mono);fill:var(--cyan)}
+#k-svg .k-lbl{font:10px var(--mono);fill:var(--muted)}
+#k-svg .k-box{fill:#0c131c;stroke:var(--line-strong);stroke-width:1.2;transition:stroke .3s}
+#k-svg .knode.hot .k-box{stroke:var(--green)}
+#k-svg .k-slot{fill:#111a25}
+#k-svg .k-pod{fill:var(--green);filter:drop-shadow(0 0 4px #4ce2a099)}
+@media(max-width:900px){.k8s-sim{grid-template-columns:1fr}.k8s-viz{order:-1}}

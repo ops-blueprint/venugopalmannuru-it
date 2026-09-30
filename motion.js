@@ -183,6 +183,65 @@
     addEventListener('resize', update); update();
   }
 
+  /* ---------- Kubernetes simulation: animates the static snapshot in #k-svg ---------- */
+  const kSvg = $('#k-svg');
+  if (kSvg) {
+    const NS = 'http://www.w3.org/2000/svg', C = 250, sim = $('#k8s-sim'), podLayer = $('#k-pods'), ev = $('#k-ev');
+    const nodesEl = $$('#k-svg .knode');
+    const slots = $$('#k-svg .k-slot').map(r => ({ node: +r.dataset.node, x: +r.getAttribute('x'), y: +r.getAttribute('y'), pod: null, dying: false, name: '' }));
+    const hex = n => Array.from({ length: n }, () => '0123456789abcdef'[Math.random() * 16 | 0]).join('');
+    let desired = 6, cpu = 48, phase = 0, healed = 0;
+    const running = () => slots.filter(s => s.pod && s.pod !== 'pending' && !s.dying);
+    const ui = () => {
+      $('#k-rep').textContent = running().length + '/' + desired; $('#k-cpu').textContent = Math.round(cpu) + '%';
+      const b = $('#k-cpubar'); b.style.width = cpu + '%'; b.style.background = cpu > 75 ? '#ff6b81' : cpu > 55 ? 'var(--amber)' : 'var(--green)';
+      $('#k-heal').textContent = healed;
+    };
+    const log = (cls, tag, msg) => {
+      const li = document.createElement('li'); li.className = cls; li.innerHTML = `<b>${tag}</b><span>${msg}</span>`;
+      ev.prepend(li); while (ev.children.length > 5) ev.lastChild.remove();
+    };
+    const mk = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); podLayer.append(e); return e; };
+    const spawn = reason => {
+      const free = slots.filter(s => !s.pod); if (!free.length) return;
+      const load = n => slots.filter(s => s.node === n && s.pod).length;
+      free.sort((a, b) => load(a.node) - load(b.node)); const s = free[0]; s.pod = 'pending';
+      s.name = 'api-7f9c2-' + hex(5);
+      log(reason === 'heal' ? 'g' : 'c', reason === 'heal' ? 'Healed' : 'Scheduled', `${s.name} → node-${s.node + 1}`);
+      const pk = mk('circle', { cx: C, cy: C, r: 4, fill: '#67d4ed', style: 'filter:drop-shadow(0 0 6px #67d4ed)' });
+      const tx = s.x + 10, ty = s.y + 10, st = performance.now(), D = 550;
+      (function fly(t) {
+        const p = Math.min((t - st) / D, 1), e = p < .5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+        pk.setAttribute('cx', C + (tx - C) * e); pk.setAttribute('cy', C + (ty - C) * e);
+        if (p < 1) return requestAnimationFrame(fly);
+        pk.remove(); s.pod = mk('rect', { class: 'k-pod', x: s.x, y: s.y, width: 20, height: 20, rx: 5 });
+        const n = nodesEl[s.node]; n.classList.add('hot'); setTimeout(() => n.classList.remove('hot'), 600); ui();
+      })(st);
+    };
+    const kill = (s, crash) => {
+      s.dying = true;
+      if (crash) { s.pod.classList.add('crash'); log('r', 'BackOff', `${s.name} OOMKilled, restarting`); }
+      else { s.pod.classList.add('out'); log('a', 'Killing', `${s.name} (scale-down)`); }
+      setTimeout(() => { s.pod.classList.add('out'); setTimeout(() => { s.pod.remove(); s.pod = null; s.dying = false; ui(); if (crash) { healed++; spawn('heal'); } }, 450); }, crash ? 700 : 0);
+    };
+    watch(sim);
+    once(sim, async () => {
+      podLayer.replaceChildren(); ev.replaceChildren(); healed = 0;
+      for (let i = 0; i < 6; i++) { spawn(); await sleep(180); }
+      while (true) {
+        await whenVisible(sim); await sleep(950);
+        phase += .09; cpu = Math.max(8, Math.min(96, 52 + 38 * Math.sin(phase) + rnd(-6, 6)));
+        const nd = Math.max(4, Math.min(16, Math.round(2 + cpu / 7)));
+        if (nd !== desired) { log('a', 'HPA', `scaled api ${desired} → ${nd} (cpu ${Math.round(cpu)}%)`); desired = nd; }
+        const r = running(), pending = slots.filter(s => s.pod === 'pending').length;
+        if (r.length + pending < desired) spawn();
+        else if (r.length > desired) kill(r[Math.random() * r.length | 0], false);
+        else if (r.length && Math.random() < .2) kill(r[Math.random() * r.length | 0], true);
+        ui();
+      }
+    }, 0.25);
+  }
+
   /* ---------- Azure IaC replay: reads the static main.tf from the page ---------- */
   const iacCode = $('#iac-code');
   if (iacCode) {
@@ -310,7 +369,7 @@
 
   /* ---------- spotlight cards + magnetic buttons ---------- */
   if (fine) {
-    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article, .iac-cloud').forEach(el => {
+    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article, .iac-cloud, .k8s-panel').forEach(el => {
       el.classList.add('m-host');
       const s = document.createElement('span'); s.className = 'm-spot'; s.setAttribute('aria-hidden', 'true'); el.prepend(s);
       el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--mx', e.clientX - r.left + 'px'); el.style.setProperty('--my', e.clientY - r.top + 'px'); });
