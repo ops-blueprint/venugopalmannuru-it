@@ -8,9 +8,9 @@
 @media(pointer:fine){.m .m-glow{opacity:1}}
 
 /* hero network mesh */
-.m .hero{position:relative}
-.m .hero>*:not(.m-net){position:relative;z-index:1}
-.m-net{position:absolute;top:0;bottom:0;left:calc(50% - 50vw);width:100vw;z-index:0;pointer-events:none;
+.m .hero,.m .case-hero{position:relative}
+.m .hero>*:not(.m-net),.m .case-hero>*:not(.m-net){position:relative;z-index:1}
+.m-net{position:absolute;top:0;bottom:0;--vw:calc(100vw - var(--m-sbw,0px));left:calc(50% - var(--vw) / 2);width:var(--vw);z-index:0;pointer-events:none;
   -webkit-mask-image:linear-gradient(#000 65%,transparent);mask-image:linear-gradient(#000 65%,transparent)}
 .m-net canvas{width:100%;height:100%;display:block}
 .m h1 span{background:linear-gradient(90deg,var(--green),var(--cyan) 50%,var(--green));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:m-shimmer 7s linear infinite}
@@ -82,5 +82,36 @@
   background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),#67d4ed14,transparent 45%)}
 .m-host:hover>.m-spot{opacity:1}
 .m .button{will-change:transform}
+
+/* case study */
+.m .m-rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+.m .m-rv.m-rv-on{opacity:1;transform:none}
+.m-mark{background:linear-gradient(90deg,#4ce2a040,#67d4ed40) no-repeat 0 88%/0% 38%;color:inherit;padding:0 2px;transition:background-size 1.1s cubic-bezier(.2,.8,.2,1) .2s}
+.m-on .m-mark{background-size:100% 38%}
+.m-rail{position:relative;height:18px;margin:0 0 14px}
+@media(max-width:900px){.m-rail{display:none}}
+.m-rail:before{content:'';position:absolute;left:0;right:0;top:8px;height:2px;background:var(--line-strong);border-radius:2px}
+.m-rail-fill{position:absolute;left:0;top:8px;height:2px;width:0;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:2px;box-shadow:0 0 10px #4ce2a080;transition:width 1s cubic-bezier(.5,0,.3,1)}
+.m-rail-dot{position:absolute;top:4px;left:0;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--green),0 0 22px var(--green);transition:left 1s cubic-bezier(.5,0,.3,1)}
+.m-rail span{position:absolute;top:3px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--bg);border:2px solid var(--line-strong);transition:border-color .4s,background .4s}
+.m-rail span.m-lit{border-color:var(--green);background:#123a2e}
+.m .method-grid article{transition:border-color .4s,box-shadow .4s,transform .4s,opacity .7s ease}
+.m .method-grid article.m-rv-on{transition:border-color .4s,box-shadow .4s,transform .4s,opacity .7s ease}
+.m .method-grid article.m-active{border-color:#4ce2a0aa;box-shadow:0 0 36px -10px #4ce2a0aa;transform:translateY(-4px)}
+.m .method-grid article.m-done{border-color:#4ce2a044}
+.m .method-grid article>span{transition:color .3s}
+.m .method-grid article.m-active>span:after{content:' · running';color:var(--amber)}
+.m .method-grid article.m-done>span:after{content:' ✓';color:var(--green)}
+.m .evidence-list a{position:relative;overflow:hidden;transition:background .3s,padding .3s}
+.m .evidence-list a:before{content:'';position:absolute;top:0;bottom:0;width:120px;left:-120px;background:linear-gradient(90deg,transparent,#4ce2a01c,transparent);pointer-events:none}
+.m .evidence-list a:hover:before{animation:m-sweep .9s ease}
+@keyframes m-sweep{to{left:100%}}
+.m .evidence-list a:hover{padding-left:16px}
+.m .evidence-list em{transition:transform .3s}
+.m .evidence-list a:hover em{transform:translateX(4px)}
+.m-live{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:10px;vertical-align:3px;animation:m-ping 2s infinite}
+@keyframes m-ping{0%{box-shadow:0 0 0 0 #4ce2a0b0}70%{box-shadow:0 0 0 9px #4ce2a000}100%{box-shadow:0 0 0 0 #4ce2a000}}
+.m .case-next a{transition:letter-spacing .3s}
+.m .case-next a:hover{letter-spacing:.04em}
 
 .m-paused *,.m-paused *:before,.m-paused *:after{animation-play-state:paused!important}

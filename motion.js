@@ -3,6 +3,8 @@
 (() => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
   document.documentElement.classList.add('m');
+  const sbw = () => document.documentElement.style.setProperty('--m-sbw', (innerWidth - document.documentElement.clientWidth) + 'px');
+  sbw(); addEventListener('resize', sbw);
 
   const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
   const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -33,7 +35,7 @@
   (function tickGlow() { gx += (tx - gx) * .12; gy += (ty - gy) * .12; glow.style.transform = `translate(${gx - 260}px,${gy - 260}px)`; requestAnimationFrame(tickGlow); })();
 
   /* ---------- hero network mesh ---------- */
-  const hero = $('.hero');
+  const hero = $('.hero, .case-hero');
   if (hero) {
     const wrap = document.createElement('div'); wrap.className = 'm-net'; wrap.setAttribute('aria-hidden', 'true');
     const c = document.createElement('canvas'); wrap.append(c); hero.prepend(wrap);
@@ -181,6 +183,63 @@
     addEventListener('resize', update); update();
   }
 
+  /* ---------- case study page ---------- */
+  if ($('.case-main')) {
+    // staggered reveals (the homepage gets these from app.js)
+    const groups = [['.case-context'], ['.case-rule'], ['.method-grid article', 90], ['.evidence-list a', 110], ['.evidence-note'], ['.case-limits > div', 120], ['.case-next']];
+    groups.forEach(([sel, step = 0]) => $$(sel).forEach((el, i) => {
+      el.classList.add('m-rv'); el.style.transitionDelay = i * step + 'ms';
+      once(el, () => el.classList.add('m-rv-on'), 0.15);
+    }));
+    // kicker decode
+    const chars = '!<>-_\\/[]{}=+*^?#01';
+    $$('.case-main .kicker').forEach(k => {
+      const text = k.textContent; k.setAttribute('aria-label', text);
+      once(k, () => {
+        const st = performance.now(), D = 900;
+        (function f(t) {
+          const p = Math.min((t - st) / D, 1), n = Math.floor(p * text.length);
+          let out = text.slice(0, n);
+          for (let i = n; i < text.length; i++) out += text[i] === ' ' ? ' ' : chars[Math.random() * chars.length | 0];
+          k.textContent = out; if (p < 1) requestAnimationFrame(f); else k.textContent = text;
+        })(st);
+      }, 0.8);
+    });
+    // engineering question highlight
+    const rule = $('.case-rule strong');
+    if (rule) { rule.innerHTML = rule.innerHTML.replace(/(“workflow succeeded”)/, '<mark class="m-mark">$1</mark>'); once(rule, () => rule.classList.add('m-on'), 0.6); }
+    // method pipeline rail
+    const grid = $('.method-grid');
+    if (grid) {
+      const steps = [...grid.children];
+      const rail = document.createElement('div'); rail.className = 'm-rail'; rail.setAttribute('aria-hidden', 'true');
+      rail.innerHTML = '<i class="m-rail-fill"></i><b class="m-rail-dot"></b>' + steps.map((_, i) => `<span style="left:${(i + .5) / steps.length * 100}%"></span>`).join('');
+      grid.before(rail); watch(grid);
+      const nodes = [...rail.querySelectorAll('span')], fill = rail.querySelector('.m-rail-fill'), dot = rail.querySelector('.m-rail-dot');
+      const setPos = i => { const pct = (i + .5) / steps.length * 100; fill.style.width = pct + '%'; dot.style.left = pct + '%'; };
+      once(grid, async () => {
+        while (true) {
+          for (let i = 0; i < steps.length; i++) {
+            await whenVisible(grid);
+            setPos(i);
+            steps.forEach((s, j) => { s.classList.toggle('m-active', j === i); s.classList.toggle('m-done', j < i); });
+            nodes.forEach((n, j) => n.classList.toggle('m-lit', j <= i));
+            await sleep(2300);
+          }
+          steps.forEach(s => { s.classList.remove('m-active'); s.classList.add('m-done'); });
+          await sleep(1800);
+          steps.forEach(s => s.classList.remove('m-done')); nodes.forEach(n => n.classList.remove('m-lit'));
+          fill.style.transition = 'none'; dot.style.transition = 'none'; fill.style.width = '0'; dot.style.left = '0';
+          void fill.offsetWidth; fill.style.transition = ''; dot.style.transition = '';
+          await sleep(400);
+        }
+      }, 0.3);
+    }
+    // live status dot on the CI evidence link
+    const ci = $$('.evidence-list a').find(a => /actions\/runs/.test(a.href));
+    if (ci) { const d = document.createElement('i'); d.className = 'm-live'; d.setAttribute('aria-hidden', 'true'); ci.querySelector('strong')?.prepend(d); }
+  }
+
   /* ---------- scroll progress ---------- */
   const prog = () => { const h = document.documentElement.scrollHeight - innerHeight; bar.style.transform = `scaleX(${h > 0 ? scrollY / h : 0})`; };
   addEventListener('scroll', prog, { passive: true }); prog();
@@ -199,7 +258,7 @@
 
   /* ---------- spotlight cards + magnetic buttons ---------- */
   if (fine) {
-    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal').forEach(el => {
+    $$('.feature, .platform-map, .signal-card, .project-card, .tool-groups > div, .terminal, .case-context, .method-grid article').forEach(el => {
       el.classList.add('m-host');
       const s = document.createElement('span'); s.className = 'm-spot'; s.setAttribute('aria-hidden', 'true'); el.prepend(s);
       el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--mx', e.clientX - r.left + 'px'); el.style.setProperty('--my', e.clientY - r.top + 'px'); });
