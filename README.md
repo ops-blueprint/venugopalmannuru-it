@@ -1,20 +1,26 @@
-# Venu Gopal Reddy | DevOps & Platform Engineering
+# Venu Gopal Reddy | DevOps & Platform Engineer
 
-A responsive professional portfolio built from the supplied CV. Dark technical-editorial design, interactive delivery concept map, experience stories, keyboard-accessible skills tabs, experience timeline, planned-project roadmap, contact links, and a downloadable CV.
+A fast, responsive professional portfolio based on the supplied CV and inspired by the user-provided DevOps Portfolio Motion Kit HTML template.
+
+The site uses the template's dark grid, neon green/cyan palette, terminal motif, pipeline visual, and career-log concept. It replaces the template's example metrics and simulated production claims with experience recorded in the CV. The terminal and diagrams are labelled illustrative. Planned public projects are labelled planned.
 
 ## Preview
 
-Serve `dist/` with any static HTTP server. No dependencies or build step are required.
+Serve `dist/` with a local static server. There are no runtime dependencies or build steps.
 
-## Content
+## Structure
 
-- `dist/index.html`: profile, experience, roadmap, contact details.
-- `dist/style.css`: responsive design and reduced-motion styles.
-- `dist/app.js`: interactions and experience-story content.
-- `dist/assets/Venu-Gopal-Reddy-CV.pdf`: supplied CV rendered as PDF, unchanged content.
+- `dist/index.html`: semantic site content and navigation
+- `dist/style.css`: responsive visual system and reduced-motion support
+- `dist/app.js`: accessible migration-phase tabs, mobile menu, copy action, and one-time entrance effects
+- `dist/assets/Venu-Gopal-Reddy-CV.pdf`: supplied CV rendered as PDF
 
-Employment outcomes are taken from the supplied CV and are not independently verified. Planned projects are explicitly identified as planned. The architecture is an illustrative delivery lifecycle, not a live infrastructure dashboard. No employer source code is included. The site points to ops-blueprint; the attached original CV still references venugopalmannuru-it.
+## Performance and accessibility choices
 
-## Publishing
+- Complete HTML arrives without client-side rendering.
+- No third-party JavaScript, web fonts, infinite animation loops, or large image payloads.
+- Interaction is event-driven; entrance effects run only once and honour reduced-motion settings.
+- Navigation, tabs, and project details work with keyboard input.
+- Mobile layout avoids horizontal overflow at a 390-pixel viewport.
 
-The Sites manifest is in `.openai/hosting.json`. The first deployment is private. Existing GitHub repositories are unchanged.
+Employment figures come from the supplied CV and have not been independently verified. The PDF still links to the user's earlier GitHub account; the site links to `ops-blueprint`.
